@@ -141,3 +141,235 @@ graph = {
 }
 
 print(topological_sort(graph))  # Output: ['A', 'C', 'B', 'D', 'E']
+
+
+
+
+
+
+
+
+
+
+
+def heapify(arr, n, i):
+    largest = i
+    l, r = 2 * i + 1, 2 * i + 2
+    largest = l if l < n and arr[l] > arr[largest] else largest
+    largest = r if r < n and arr[r] > arr[largest] else largest
+    if largest != i:
+        arr[i], arr[largest] = arr[largest], arr[i]
+        heapify(arr, n, largest)
+
+def heap_sort(arr):
+    n = len(arr)
+    for i in range(n // 2 - 1, -1, -1):
+        heapify(arr, n, i)
+    for i in range(n - 1, 0, -1):
+        arr[i], arr[0] = arr[0], arr[i]
+        heapify(arr, i, 0)
+
+# Example usage:
+arr = [12, 11, 13, 5, 6, 7]
+heap_sort(arr)
+print("Sorted array is:", arr)  # Output: Sorted array is: [5, 6, 7, 11, 12, 13]
+
+
+
+
+
+
+
+
+
+def knapsack(weights, values, capacity):
+    n = len(weights)
+    dp = [[0] * (capacity + 1) for _ in range(n + 1)]
+
+    for i in range(1, n + 1):
+        for w in range(1, capacity + 1):
+            if weights[i - 1] <= w:
+                dp[i][w] = max(values[i - 1] + dp[i - 1][w - weights[i - 1]], dp[i - 1][w])
+            else:
+                dp[i][w] = dp[i - 1][w]
+
+    selected_items = []
+    i, w = n, capacity
+    while i > 0 and w > 0:
+        if dp[i][w] != dp[i - 1][w]:
+            selected_items.append(i - 1)
+            w -= weights[i - 1]
+        i -= 1
+
+    return dp[n][capacity], selected_items[::-1]
+
+# Example usage:
+weights = [2, 3, 4, 5]
+values = [3, 4, 5, 6]
+capacity = 5
+max_value, selected_items = knapsack(weights, values, capacity)
+print("Maximum value:", max_value)
+print("Selected items:", selected_items)
+
+
+
+
+
+
+
+
+
+
+
+
+from scipy.optimize import linprog
+
+# Objective function coefficients
+c = [-2, -3, -4]
+
+# Coefficients of inequality constraints (left-hand side)
+A = [[3, 2, 1],
+     [2, 5, 3]]
+
+# Right-hand side of inequality constraints
+b = [10, 15]
+
+# Bounds for variables (None represents no bound)
+x0_bounds = (None, None)
+x1_bounds = (None, None)
+x2_bounds = (None, None)
+
+# Solve the linear programming problem using the simplex method
+result = linprog(c, A_ub=A, b_ub=b, bounds=[x0_bounds, x1_bounds, x2_bounds], method='simplex')
+
+print('Optimal solution:', result.x)
+print('Optimal value:', -result.fun)  # Since linprog minimizes the objective function, we negate it to get the maximum value
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def is_safe(board, row, col, N):
+    # Check if there is a queen in the same column
+    for i in range(row):
+        if board[i][col] == 1:
+            return False
+    
+    # Check upper left diagonal
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+    
+    # Check upper right diagonal
+    for i, j in zip(range(row, -1, -1), range(col, N)):
+        if board[i][j] == 1:
+            return False
+    
+    return True
+
+def solve_n_queens(N):
+    board = [[0] * N for _ in range(N)]
+    solutions = []
+
+    def backtrack(row):
+        if row == N:
+            solutions.append([''.join('Q' if cell == 1 else '.' for cell in row) for row in board])
+            return
+        
+        for col in range(N):
+            if is_safe(board, row, col, N):
+                board[row][col] = 1
+                backtrack(row + 1)
+                board[row][col] = 0
+
+    backtrack(0)
+    return solutions
+
+# Example usage:
+N = 4
+solutions = solve_n_queens(N)
+for idx, solution in enumerate(solutions):
+    print(f"Solution {idx + 1}:")
+    for row in solution:
+        print(row)
+    print()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import numpy as np
+import copy
+
+class Node:
+    def __init__(self, level, assigned_tasks, cost, parent=None):
+        self.level = level
+        self.assigned_tasks = assigned_tasks
+        self.cost = cost
+        self.parent = parent
+
+def assign_tasks(cost_matrix):
+    n = len(cost_matrix)
+    root = Node(level=0, assigned_tasks=[], cost=0)
+    priority_queue = [root]
+    min_cost = float('inf')
+    optimal_assignment = []
+
+    while priority_queue:
+        node = priority_queue.pop(0)
+
+        if node.level == n:
+            if node.cost < min_cost:
+                min_cost = node.cost
+                optimal_assignment = node.assigned_tasks
+            continue
+
+        for task in range(n):
+            if task not in node.assigned_tasks:
+                new_assignment = copy.deepcopy(node.assigned_tasks)
+                new_assignment.append(task)
+                new_cost = node.cost + cost_matrix[node.level][task]
+
+                child = Node(level=node.level + 1, assigned_tasks=new_assignment, cost=new_cost, parent=node)
+                priority_queue.append(child)
+
+        priority_queue.sort(key=lambda x: x.cost)
+
+    return min_cost, optimal_assignment
+
+# Example usage:
+cost_matrix = np.array([[9, 2, 7, 8],
+                        [6, 4, 3, 7],
+                        [5, 8, 1, 8],
+                        [7, 6, 9, 4]])
+
+min_cost, optimal_assignment = assign_tasks(cost_matrix)
+print("Minimum cost:", min_cost)
+print("Optimal assignment:", optimal_assignment)
+
